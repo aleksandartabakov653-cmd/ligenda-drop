@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ligenda Drop - CS2 Case Opening</title>
+    <style>
+        :root {
+            --bg-color: #0f1219;
+            --card-bg: #1a1f2c;
+            --accent-gold: #e5b324;
+            --text-color: #ffffff;
+            
+            /* Rarity colors */
+            --mil-spec: #4b69ff;
+            --restricted: #8847ff;
+            --classified: #d32ce6;
+            --covert: #eb4b4b;
+            --extraordinary: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header & Header Controls */
+        header {
+            width: 100%;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(26, 31, 44, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #2a3245;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #ff8c00, #e5b324);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(229, 179, 36, 0.3);
+        }
+
+        .lang-picker {
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: #2a3245;
+            border: 1px solid #3a455c;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            background: var(--accent-gold);
+            color: #000;
+            border-color: var(--accent-gold);
+        }
+
+        /* Main Container */
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 40px;
+            width: 100%;
+            max-width: 1000px;
+            padding: 0 20px;
+        }
+
+        .case-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #a0aabf;
+            text-transform: uppercase;
+        }
+
+        /* Roulette Wheel Container */
+        .roulette-wrapper {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #141824;
+            border: 3px solid #2a3245;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        /* Selector Line (Center) */
+        .roulette-wrapper::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #ff3e3e;
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 0 10px #ff3e3e, 0 0 20px #ff3e3e;
+        }
+
+        .roulette-strip {
+            display: flex;
+            position: absolute;
+            left: 0;
+            top: 10px;
+            height: 180px;
+            will-change: transform;
+            transition: transform 5s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+
+        /* Skin Card Item inside Wheel */
+        .skin-card {
+            min-width: 160px;
+            max-width: 160px;
+            height: 180px;
+            margin: 0 5px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            position: relative;
+            border-bottom: 5px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .skin-card.mil-spec { border-color: var(--mil-spec); background: linear-gradient(180deg, var(--card-bg) 60%, rgba(75, 105, 255, 0.15)); }
+        .skin-card.restricted { border-color: var(--restricted); background: linear-gradient(180deg, var(--card-bg) 60%, rgba(136, 71, 255, 0.15)); }
+        .skin-card.classified { border-color: var(--classified); background: linear-gradient(180deg, var(--card-bg) 60%, rgba(211, 44, 230, 0.15)); }
+        .skin-card.covert { border-color: var(--covert); background: linear-gradient(180deg, var(--card-bg) 60%, rgba(235, 75, 75, 0.15)); }
+        .skin-card.extraordinary { border-color: var(--extraordinary); background: linear-gradient(180deg, var(--card-bg) 60%, rgba(255, 215, 0, 0.2)); }
+
+        .skin-card img {
+            width: 110px;
+            height: 80px;
+            object-fit: contain;
+            margin-top: 10px;
+            filter: drop-shadow(0 5px 8px rgba(0,0,0,0.5));
+            transition: transform 0.3s;
+        }
+
+        .skin-name {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: #d1d5db;
+        }
+
+        .skin-weapon {
+            font-size: 10px;
+            color: #8a94a6;
+            text-transform: uppercase;
+        }
+
+        /* Action Buttons */
+        .controls {
+            margin-top: 30px;
+        }
+
+        .open-btn {
+            background: linear-gradient(135deg, #e5b324, #c49514);
+            border: none;
+            color: #000;
+            padding: 16px 50px;
+            font-size: 20px;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(229, 179, 36, 0.4);
+            transition: all 0.2s;
+        }
+
+        .open-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(229, 179, 36, 0.6);
+            background: linear-gradient(135deg, #fcd043, #e5b324);
+        }
+
+        .open-btn:disabled {
+            background: #4a5366;
+            color: #8a94a6;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Modal Win Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 100;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: #1a1f2c;
+            border: 2px solid #2a3245;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: scale(0.7);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .win-img {
+            width: 200px;
+            height: 140px;
+            object-fit: contain;
+            margin: 20px 0;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.7));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .win-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+
+        .close-btn {
+            background: #2a3245;
+            border: 1px solid #3a455c;
+            color: white;
+            padding: 10px 30px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #3a455c;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Ligenda Drop</div>
+        <div class="lang-picker">
+            <button class="lang-btn active" onclick="setLanguage('uk')">UK</button>
+            <button class="lang-btn" onclick="setLanguage('bg')">BG</button>
+            <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="case-title" id="case-title">Легендарний Кейс</div>
+
+        <div class="roulette-wrapper">
+            <div class="roulette-strip" id="strip"></div>
+        </div>
+
+        <div class="controls">
+            <button class="open-btn" id="open-btn" onclick="spin()">Відкрити кейс</button>
+        </div>
+    </main>
+
+    <!-- Modal for Win -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">Ви виграли!</div>
+            <img src="" alt="Skin" class="win-img" id="win-img">
+            <div class="win-name" id="win-name">AK-47 | Asiimov</div>
+            <button class="close-btn" id="close-btn" onclick="closeModal()">Забрати</button>
+        </div>
+    </div>
+
+    <script>
+        // Dictionary for Multi-language Support
+        const translations = {
+            uk: {
+                caseTitle: "Легендарний Кейс",
+                openBtn: "Відкрити кейс",
+                modalTitle: "Вітаємо! Ваш виграш:",
+                closeBtn: "Забрати"
+            },
+            bg: {
+                caseTitle: "Легендарен Куфар",
+                openBtn: "Отвори куфар",
+                modalTitle: "Честито! Вие спечелихте:",
+                closeBtn: "Вземи"
+            },
+            ru: {
+                caseTitle: "Легендарный Кейс",
+                openBtn: "Открыть кейс",
+                modalTitle: "Поздравляем! Ваш выигрыш:",
+                closeBtn: "Забрать"
+            }
+        };
+
+        let currentLang = 'uk';
+
+        // Skins Database
+        const skins = [
+            { weapon: "AK-47", name: "Redline", rarity: "classified", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811568211" },
+            { weapon: "M4A4", name: "Howl", rarity: "covert", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811342" },
+            { weapon: "AWP", name: "Dragon Lore", rarity: "covert", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811234" },
+            { weapon: "USP-S", name: "Kill Confirmed", rarity: "covert", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811987" },
+            { weapon: "Glock-18", name: "Water Elemental", rarity: "restricted", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811554" },
+            { weapon: "Desert Eagle", name: "Printstream", rarity: "classified", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811776" },
+            { weapon: "★ Karambit", name: "Doppler", rarity: "extraordinary", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811001" },
+            { weapon: "MP7", name: "Armor Core", rarity: "mil-spec", img: "https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZFCb4d1844feAM7XARo48544fQ55R5UHpa80A662z69-952-321-41-11R62-811112" }
+        ];
+
+        const strip = document.getElementById('strip');
+        const openBtn = document.getElementById('open-btn');
+        const cardWidth = 170; // 160px width + 10px margin
+        let isSpinning = false;
+
+        // Audio Effects using Web Audio API (No external files needed)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTickSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        // Initialize Wheel
+        function generateCards() {
+            strip.innerHTML = '';
+            // Generate 80 cards for smooth long-distance scrolling
+            for (let i = 0; i < 80; i++) {
+                const randomSkin = skins[Math.floor(Math.random() * skins.length)];
+                const card = document.createElement('div');
+                card.className = `skin-card ${randomSkin.rarity}`;
+                card.innerHTML = `
+                    <div class="skin-weapon">${randomSkin.weapon}</div>
+                    <img src="${randomSkin.img}" alt="${randomSkin.name}">
+                    <div class="skin-name">${randomSkin.name}</div>
+                `;
+                card.dataset.skin = JSON.stringify(randomSkin);
+                strip.appendChild(card);
+            }
+        }
+
+        // Language Switching Logic
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Update Active Class on Language Buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.textContent.toLowerCase() === lang) btn.classList.add('active');
+            });
+
+            // Update UI Texts
+            document.getElementById('case-title').textContent = translations[lang].caseTitle;
+            document.getElementById('open-btn').textContent = translations[lang].openBtn;
+            document.getElementById('modal-title').textContent = translations[lang].modalTitle;
+            document.getElementById('close-btn').textContent = translations[lang].closeBtn;
+        }
+
+        // Spin Logic
+        function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            openBtn.disabled = true;
+
+            // Reset strip position
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateX(0px)';
+            
+            // Force Reflow
+            strip.offsetHeight;
+
+            // Choose winning index (between index 50 and 65 for natural scroll length)
+            const winIndex = Math.floor(Math.random() * 15) + 50;
+            const targetCard = strip.children[winIndex];
+            const winningSkin = JSON.parse(targetCard.dataset.skin);
+
+            // Calculate precise offset to stop on center line with small random deviation
+            const wrapperWidth = document.querySelector('.roulette-wrapper').offsetWidth;
+            const randomOffset = Math.floor(Math.random() * 100) - 50; // Random offset from center (-50px to +50px)
+            const targetPosition = (winIndex * cardWidth) - (wrapperWidth / 2) + (cardWidth / 2) + randomOffset;
+
+            // Apply Transition & Transform
+            strip.style.transition = 'transform 5s cubic-bezier(0.1, 1, 0.1, 1)';
+            strip.style.transform = `translateX(-${targetPosition}px)`;
+
+            // Sound Ticks Logic
+            let currentTick = 0;
+            const totalTicks = 35;
+            const tickInterval = setInterval(() => {
+                if (currentTick < totalTicks) {
+                    playTickSound();
+                    currentTick++;
+                } else {
+                    clearInterval(tickInterval);
+                }
+            }, 120);
+
+            // On Animation End
+            setTimeout(() => {
+                showWinModal(winningSkin);
+                isSpinning = false;
+                openBtn.disabled = false;
+            }, 5200);
+        }
+
+        // Show Win Modal
+        function showWinModal(skin) {
+            const modal = document.getElementById('modal');
+            document.getElementById('win-img').src = skin.img;
+            document.getElementById('win-name').textContent = `${skin.weapon} | ${skin.name}`;
+            document.getElementById('win-name').style.color = `var(--${skin.rarity})`;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            generateCards(); // Reset cards for next spin
+        }
+
+        // Initial Setup
+        generateCards();
+    </script>
+</body>
+</html>
